@@ -13,7 +13,9 @@ The configuration file must be in json format. e.g.
 
     {
         "LMS_URL": "path-to-lms-running-server",
-        "OPEN_EDX_OAUTH_TOKEN": "oAuth-lms-token",
+        "OPEN_EDX_OAUTH_CLIENT_ID": "client_id",
+        "OPEN_EDX_OAUTH_CLIENT_SECRET": "client_secret",
+        "OPEN_EDX_OAUTH_TOKEN_URL": "/oauth2/access_token/",
         "AWS_ACCESS_KEY_ID": "S3-AWS-access-key",
         "AWS_SECRET_ACCESS_KEY": "S3-AWS-secret-key",
         "SUPPORTED_REPORTS": [
