@@ -28,7 +28,7 @@ def get_settings(should_set_environment_settings):
         if should_set_environment_settings:
             set_environment_settings(settings)
     except ValueError as json_error:
-        print(json_error.message)
+        print(json_error)
         quit()
 
     return settings

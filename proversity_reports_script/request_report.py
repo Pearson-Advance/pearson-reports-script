@@ -5,6 +5,9 @@ Main module to request and polling the report data.
 from importlib import import_module
 from time import sleep
 
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+
 from proversity_reports_script.get_settings import get_settings
 from proversity_reports_script.request_module import request_handler
 from proversity_reports_script.report_apis.report_api_v1 import (
@@ -20,7 +23,7 @@ class FetchReportData(object):
         self.settings = get_settings(should_set_environment_settings=True)
         self.command_extra_arguments = kwargs.pop('extra_arguments', {})
         self.api_version = kwargs.pop('api_version', 'v0')
-
+        self.token = None
         self.courses = self.settings.get('COURSES', [])
 
         if not self.courses:
@@ -207,12 +210,34 @@ class FetchReportData(object):
     def get_request_headers(self):
         """
         Return a dict containing common request headers.
+        It obtains a bearer token using the client_id and client_secret key pair
+        and then it will return this token to make authenticated requests.
 
         Returns:
             Dict that contains common request HTTP headers.
         """
+        client_id = self.settings.get('OPEN_EDX_OAUTH_CLIENT_ID', '')
+        client_secret = self.settings.get('OPEN_EDX_OAUTH_CLIENT_SECRET', '')
+        token_url = '{lms_url}{token_url}'.format(
+            lms_url=self.settings.get('LMS_URL', ''),
+            token_url=self.settings.get('OPEN_EDX_OAUTH_TOKEN_URL', ''),
+        )
+
+        if not self.token:
+            oauth = OAuth2Session(
+                client=BackendApplicationClient(client_id=client_id),
+            )
+            self.token = oauth.fetch_token(
+                token_url=token_url,
+                client_id=client_id,
+                client_secret=client_secret,
+            )
+
         return {
-            'Authorization': 'Bearer {}'.format(self.settings.get('OPEN_EDX_OAUTH_TOKEN', '')),
+            'Authorization': '{token_type} {token}'.format(
+                token_type=self.token.get('token_type', ''),
+                token=self.token.get('access_token', ''),
+            ),
             'Content-Type': 'application/json',
         }
 
