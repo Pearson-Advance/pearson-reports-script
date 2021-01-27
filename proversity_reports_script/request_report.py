@@ -156,20 +156,25 @@ class FetchReportData(object):
             )
         elif self.api_version == 'v1':
             response_data = report_generation_request_response.get('data', {})
-            report_data = []
+            report_data = {}
 
             if not response_data:
                 print('No response data.')
                 exit()
 
             for course_id in self.courses:
+                course_data = []
+
                 for page_url in response_data.get(course_id, []):
-                    report_data.append(
+                    course_data.append(
                         polling_report_data(
                             report_data_url=page_url,
                             request_headers=request_headers,
                         )
                     )
+
+                if course_data:
+                    report_data.update({course_id: course_data})
 
         return report_data
 
@@ -280,7 +285,7 @@ def polling_report_data(report_data_url, request_headers):
             return {}
 
         sleep(sleep_for)
-        print('waitig for... {}'.format(sleep_for))
+        print('waiting for... {}'.format(sleep_for))
         report_data = request_handler(
             request_url=report_data_url,
             request_data={},
