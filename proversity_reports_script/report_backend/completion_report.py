@@ -2,6 +2,7 @@
 Report backend for completion report.
 """
 import csv
+import functools
 import os
 from collections import OrderedDict
 from datetime import datetime
@@ -19,6 +20,8 @@ class CompletionReportBackend(AbstractBaseReportBackend):
 
     def __init__(self, *args, **kwargs):
         extra_data = kwargs.get('extra_data', {})
+        self.bucket_name = extra_data.get('BUCKET_NAME', '')
+        self.bucket_path = extra_data.get('BUCKET_PATH', '')
         super(CompletionReportBackend, self).__init__(extra_data.get('SPREADSHEET_DATA', {}))
 
     def generate_report(self, json_report_data):
@@ -31,21 +34,21 @@ class CompletionReportBackend(AbstractBaseReportBackend):
         """
         Process json data to convert into csv format.
         """
-        report_data = json_report_data.get('result', {})
-
-        if not report_data:
+        if not json_report_data:
             print('No report data...')
             exit()
 
-        course_list = report_data.keys()
-
-
-        for course in course_list:
-            course_data = report_data.get(course, [])
+        for course in json_report_data.keys():
+            course_data = json_report_data.get(course, {})
+            # Reduce all page results into a single list.
+            user_data = functools.reduce(
+                lambda accumulated_user_data, current_user_data: accumulated_user_data + current_user_data,
+                map(lambda course_page_data: course_page_data.get('result', []), course_data),
+            )
             csv_data = []
             general_course_data = {}
 
-            for user in course_data:
+            for user in user_data:
                 username = user.get('username', '')
                 user_id = user.get('user_id', '')
                 cohort = user.get('cohort', '')
@@ -130,15 +133,15 @@ class CompletionReportBackend(AbstractBaseReportBackend):
         Uploads the csv report, to S3 storage.
         """
         amazon_storage = boto3.resource('s3')
-        reports_bucket = amazon_storage.Bucket('proversity-custom-reports')
-        now = datetime.now()
+        reports_bucket = amazon_storage.Bucket(self.bucket_name)
 
         reports_bucket.upload_file(
             path_file,
-            'cabinet/{course}/completion_report/{date}.csv'.format(
+            '{bucket_path}/{course}/{date}.csv'.format(
+                bucket_path=self.bucket_path,
                 course=course,
-                date=now
-            )
+                date=datetime.now(),
+            ),
         )
 
     def _verify_name(self, name, data):
