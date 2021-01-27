@@ -25,13 +25,23 @@ The configuration file must be in json format. e.g.
             "Add a new one, if you add a new report backend"
         ],
         "COMPLETION_REPORT": {
-            "REPORT_URL": "example:/proversity-reports/api/v0/generate-completion-report",
+            "REPORT_URL": "example:/pearson-reports/api/v1/generate-completion-report",
             "BACKEND_REPORT": "example:proversity_reports_script.report_backend.completion_report:CompletionReportBackend",
-            "SPREADSHEET_DATA": {
-                "completion_sheet_id_<course_id>": "Spreadsheet id for completion report.",
-                "general_course_sheet_id_<course_id>": "Spreadsheet id for course structure report."
+            "EXTRA_DATA": {
+                "SPREADSHEET_DATA": {
+                    "completion_sheet_id_<course_id>": "Spreadsheet id for completion report.",
+                    "general_course_sheet_id_<course_id>": "Spreadsheet id for course structure report."
+                },
+                "BUCKET_NAME": "Name of the bucket to store the reports",
+                "SPREADSHEET_RANGE_NAME": "Name of the spreadsheet range to update.",
+                "BUCKET_PATH": "Path inside the bucket to store the CSV files."
+            },
+            "EXTRA_REQUEST_DATA": {
+                "query_params": {
+                    "limit": Number of results per page.
+                }
             }
-        },
+        }
         "LAST_PAGE_ACCESSED": {
             "REPORT_URL": "path-to-report-generation-url",
             "BACKEND_REPORT": "absolute-path-to-report-backend-module:report-backend-class-name"
