@@ -2,6 +2,7 @@
 Enrollment per site report backend.
 """
 import csv
+import functools
 import os
 from collections import OrderedDict
 from datetime import datetime, timedelta
@@ -28,7 +29,10 @@ class EnrollmentPerSiteReport(AbstractBaseReportBackend):
         """
         Main logic to generate the report.
         """
-        self.json_report_to_csv([data.get('result', {}) for data in json_report_data])
+        # Get all the values of each course.
+        all_courses_data = functools.reduce(lambda x, y: x + y, json_report_data.values())
+
+        self.json_report_to_csv((data.get('result', {}) for data in all_courses_data))
 
     def json_report_to_csv(self, json_report_data):
         """
